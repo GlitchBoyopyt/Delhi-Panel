@@ -1,0 +1,11 @@
+{
+    "name": "Example Plugin",
+    "version": "1.0.0",
+    "description": "Description of the Example Plugin",
+    "author": "ma4z",
+    "main": "index.js",
+    "router": "",
+    "adminsidebar": {
+        "example url": "/instance/%id%/example"
+    }
+}
