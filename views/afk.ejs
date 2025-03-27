@@ -1,0 +1,137 @@
+<%- include('components/template') %>
+
+<!-- Main Content -->
+<main class="flex-grow container mx-auto px-4 py-8 bg-gradient-to-br from-[#1f1e1e] to-[#292929] rounded-lg shadow-lg">
+  
+    <div class="flex justify-between items-center w-full mx-auto pb-4">
+        <!-- Welcome text and subtext on the left -->
+        <div class="flex flex-col">
+            <h1 class="text-xl font-semibold mb-0.5" style="font-family: 'Cabin';">AFK Page</h1>
+            <p class="text-gray-400 text-md">Earn free rewards for keeping this page open.</p>
+        </div>
+
+        <!-- Breadcrumbs on the right -->
+        <nav class="inline-flex py-2 px-4 rounded-xl bg-white/5 transition">
+            <ol class="flex items-center space-x-2">
+                <li>
+                    <a href="/dashboard" class="text-sm flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition">
+                        <svg class="icon size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12l-2 0l9 -9l9 9l-2 0"></path>
+                            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path>
+                            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path>
+                        </svg>
+                        <code>Home</code>
+                    </a>
+                </li>
+                <li>
+                    <svg class="icon size-4 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 6l6 6l-6 6"></path>
+                    </svg>
+                </li>
+                <li>
+                    <span class="text-sm font-medium text-white/80">AFK Page</span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- AFK Page Content -->
+    <div class="mt-24 flex justify-center">
+        <div class="text-center">
+            <div class="mb-6">
+                <svg class="h-16 w-16 bg-white/5 p-1.5 rounded-xl border border-white/10 mx-auto text-gray-200" 
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path d="M15.042 21.672 13.684 16.6m-2.51 2.225.569-9.47 5.227 7.917-3.286-.672M8.288 14.212A8.25 8.25 0 1 1 20.25 10.5"/>
+                </svg>                  
+            </div>
+            <h2 class="text-2xl font-bold mb-4">AFK Page</h2>
+            <p class="text-gray-400 mb-6">
+                Earn 5 coins for free, by leaving this page open. 
+                <code class="text-gray-200" id="afkTime">0h 0m 0s</code>
+            </p>
+            
+            <script>
+                let session = 0;
+                let afkTime = localStorage.getItem("afkTime") ? parseInt(localStorage.getItem("afkTime")) : 0;
+                let currentCoins = 0;
+
+                function updateAfkTime() {
+                    afkTime++;
+                    localStorage.setItem("afkTime", afkTime);
+                    const hours = Math.floor(afkTime / 3600);
+                    const minutes = Math.floor((afkTime % 3600) / 60);
+                    const seconds = afkTime % 60;
+                    document.getElementById("afkTime").innerHTML = `${hours}h ${minutes}m ${seconds}s`;
+                }
+
+                function playNotification() {
+                    const audio = new Audio("/sounds/coin.mp3"); 
+                    audio.volume = 0.5;
+                    audio.play();
+                }
+
+                function connect() {
+                    const ws = new WebSocket(`${window.location.href.startsWith("https://") ? "wss" : "ws"}://${window.location.hostname}/afkwspath`);
+                    
+                    ws.onopen = () => {
+                        console.log("[WS] Connected.");
+                        document.getElementById("coinCountdown").innerHTML = "Connected!";
+                    };
+
+                    ws.onmessage = (msg) => {
+                        let data = JSON.parse(msg.data);
+                        if (data.type === "count") {
+                            document.getElementById("coinCountdown").innerHTML = `${data.amount} sec`;
+                            updateAfkTime();
+                        } else if (data.type === "coin") {
+                            session++;
+                            currentCoins++;
+                            document.getElementById("sessionEarn").innerHTML = `${session} Coins`;
+                            playNotification();
+                        }
+                    };
+
+                    ws.onerror = (err) => {
+                        console.log("[WS] Error:", err);
+                        document.getElementById("coinCountdown").innerHTML = "Reconnecting...";
+                        setTimeout(connect, 3000);
+                    };
+
+                    ws.onclose = () => {
+                        document.getElementById("coinCountdown").innerHTML = "Reconnecting...";
+                        setTimeout(connect, 3000);
+                    };
+                }
+
+                connect();
+            </script>
+
+            <form>
+                <div class="flex justify-between mb-6">
+                    <button type="button" class="bg-blue-600 text-sm font-medium text-white px-4 py-2 rounded-full hover:bg-blue-700 transition">
+                        <code id="coinCountdown">Connecting...</code>
+                    </button>
+                    <button type="button" class="text-sm font-medium bg-gray-200 text-gray-700 px-4 py-2 rounded-full transition hover:bg-gray-300">
+                        <code id="sessionEarn">0 Coins</code>
+                    </button>
+                </div>
+            </form>
+
+            <div class="border-t border-white/5">
+                <p class="text-sm tracking-widest text-gray-500 uppercase mb-3 mt-16">WHY NOT COMPLETE LINKVERTISE LINKS WHILE YOU AFK?</p>
+                <p class="text-2xl font-bold text-white"><code id="usedToday"></code> Linkvertise</p>
+                <p class="mt-2 text-sm text-gray-300">For every Linkvertise link you complete, you will get 10 HPC.</p>
+                <div class="mt-4 flex justify-center">
+                    <a href="./lv" target="_blank" class="group relative flex justify-center rounded-full border border-transparent py-2 px-6 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        Go to Linkvertise
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<%- include('./components/footer') %>
+</div>
+
