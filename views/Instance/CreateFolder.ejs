@@ -1,0 +1,87 @@
+<%- include('../components/template') %>
+
+<main id="content">
+    <div class="bg-transparent">
+        <div class="sm:flex sm:items-center px-8 pt-4">
+            <div class="sm:flex-auto">
+                <h1 class="text-base font-medium leading-6 text-white">Manage Instance</h1>
+                <p class="mt-1 tracking-tight text-sm text-neutral-500">
+                    View, update, and manage an instance on the <%= name %> panel.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../components/instance') %>
+
+    <% let query = req.query.path ? '?path=' + encodeURIComponent(req.query.path) : ''; %>
+    <div class="flex flex-col px-8">
+        <h1 class="text-neutral-200 text-md">
+            <a class="text-neutral-400 hover:text-neutral-300 transition" href="../">
+                /app/data/<%= req.query.path || '' %>
+            </a>
+        </h1>
+        <input
+            id="folder"
+            type="text"
+            name="folder"
+            class="w-full sm:w-96 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-white px-4 py-2 border border-white/10 bg-neutral-700/30 placeholder:text-white/30 mt-2"
+            placeholder="Enter folder name"
+            required
+        />
+    </div>
+
+    <div class="flex mt-6 px-8 space-x-4">
+        <a href="/instance/<%= req.params.id %>/files" class="rounded-xl bg-transparent border border-white/5 hover:bg-neutral-600/10 px-3 py-2 text-center text-sm font-normal text-neutral-300 shadow-md transition">
+            Back
+        </a>
+        <button id="saveButton" type="button" class="rounded-xl <%= theme['button-color'] %> px-3 py-2 text-center text-sm font-medium shadow-md transition hover:scale-105 active:scale-95">
+            Create Folder
+        </button>
+    </div>
+</main>
+
+<%- include('../components/footer') %>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const button = document.getElementById('saveButton');
+    const folderInput = document.getElementById('folder');
+    const instanceId = <%- JSON.stringify(req.params.id) %>;
+
+    function saveFile() {
+        const folder = folderInput.value.trim();
+        if (!folder) {
+            alert("Please enter a folder name.");
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Working on it...';
+
+        fetch(`/instance/${instanceId}/files/folder/create/${encodeURIComponent(folder)}<%= query %>`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.message) {
+                button.textContent = 'Done!';
+                setTimeout(() => {
+                    window.location.href = `/instance/${instanceId}/files?path=<%= req.query.path ? encodeURIComponent(req.query.path + '/' + folder) : encodeURIComponent(folder) %>`;
+                }, 1000);
+            } else {
+                throw new Error("Server response error");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to create the folder.');
+            button.disabled = false;
+            button.textContent = 'Create Folder';
+        });
+    }
+
+    button.addEventListener('click', saveFile);
+});
+</script>
