@@ -1,0 +1,89 @@
+<%- include('components/template') %>
+
+<!-- Main Content -->
+<main class="flex-grow container mx-auto px-4 py-8 bg-[#1f1e1e] text-neutral-100">
+  
+    <div class="flex justify-between items-center w-full mx-auto pb-4">
+        <div class="flex flex-col">
+            <h1 class="text-xl font-semibold mb-0.5" style="font-family: 'Cabin';">Transfer Coins</h1>
+            <p class="text-gray-400 text-md">Give your friends some coins cause why not?</p>
+        </div>
+
+        <nav aria-label="Breadcrumb" class="inline-flex py-2 px-4 rounded-xl bg-white/10 transition-colors duration-200">
+            <ol role="list" class="flex items-center space-x-2">
+                <li>
+                    <a href="/dashboard" class="text-sm flex items-center gap-2 text-gray-300 hover:text-white transition-colors duration-200" aria-current="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+                            <path d="M5 12l-2 0l9 -9l9 9l-2 0"></path>
+                            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path>
+                            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path>
+                        </svg>
+                        <code>Home</code>
+                    </a>
+                </li>
+                <li class="flex items-center text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+                        <path d="M9 6l6 6l-6 6"></path>
+                    </svg>
+                </li>
+                <li>
+                    <a href="#" class="text-sm font-medium text-white/80 hover:text-white transition duration-200">
+                        Transfer
+                    </a>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Transfer Coins Form -->
+    <div class="mt-24 flex justify-center">
+        <div class="text-center">
+            <div class="mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" class="h-16 w-16 bg-white/10 p-1.5 rounded-xl border border-white/10 mx-auto text-gray-200">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Transfer</h2>
+            <p class="text-gray-400 mb-6">Send coins to other users on the platform</p>
+    
+            <form class="space-y-4">
+                <div>
+                    <label for="coins" class="block text-sm font-medium text-gray-300">Coins</label>
+                    <input 
+                        type="text" 
+                        id="coins" 
+                        class="bg-[#2c2b2b] text-sm font-medium text-white px-4 py-2 rounded-md w-full border border-gray-500 focus:border-blue-500 focus:outline-none transition duration-200" 
+                        placeholder="Enter coins">
+                </div>
+                <div>
+                    <label for="receiver-email" class="block text-sm font-medium text-gray-300">Receiver Email</label>
+                    <input 
+                        type="text" 
+                        id="receiver-email" 
+                        class="bg-[#2c2b2b] text-sm font-medium text-white px-4 py-2 rounded-md w-full border border-gray-500 focus:border-blue-500 focus:outline-none transition duration-200" 
+                        placeholder="Enter receiver's email">
+                </div>                
+            </form>
+            <div class="border-t border-white/10 my-4"></div>
+            <button onclick="sendcoins()" class="w-full flex justify-center rounded-md py-2 px-6 text-sm font-medium text-neutral-100 bg-blue-500 hover:bg-blue-600 transition duration-200 focus:outline-none">
+                Transfer
+            </button>
+        </div>
+    </div>
+</main>
+
+<script>
+    function sendcoins() {
+        const email = document.getElementById('receiver-email').value;
+        const coins = document.getElementById('coins').value;
+
+        if (!email || !coins) {
+            return alert('Email and Coins Input is Required');
+        }
+
+        window.location.href = `/transfercoins?coins=${coins}&email=${email}`;
+    }
+</script>
+
+<!-- Footer -->
+<%- include('./components/footer') %>
