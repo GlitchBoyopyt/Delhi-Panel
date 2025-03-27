@@ -1,0 +1,57 @@
+    <div class="file-grid">
+        <% files.forEach(file => { %>
+            <div class="file-card">
+                <%= getFileIcon(file.type) %>
+                <span class="file-name"><%= file.name %></span>
+                <span class="file-size"><%= file.size %></span>
+            </div>
+        <% }); %>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="create-folder-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="text-lg font-semibold text-white mb-4">Create New Folder</h3>
+        <input type="text" id="folder-name" class="w-full p-2 rounded bg-neutral-800 text-white" placeholder="Folder Name">
+        <div class="flex justify-end mt-4">
+            <button onclick="hideModal('create-folder-modal')" class="bg-red-500 hover:bg-red-600 text-white py-1.5 px-4 rounded-full transition">Cancel</button>
+            <button onclick="createFolder()" class="bg-green-500 hover:bg-green-600 text-white py-1.5 px-4 rounded-full transition ml-2">Create</button>
+        </div>
+    </div>
+</div>
+
+<div id="new-file-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="text-lg font-semibold text-white mb-4">Create New File</h3>
+        <input type="text" id="file-name" class="w-full p-2 rounded bg-neutral-800 text-white" placeholder="File Name">
+        <div class="flex justify-end mt-4">
+            <button onclick="hideModal('new-file-modal')" class="bg-red-500 hover:bg-red-600 text-white py-1.5 px-4 rounded-full transition">Cancel</button>
+            <button onclick="createFile()" class="bg-green-500 hover:bg-green-600 text-white py-1.5 px-4 rounded-full transition ml-2">Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+
+    function hideModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function createFolder() {
+        const folderName = document.getElementById('folder-name').value;
+        if (!folderName) return alert('Folder name cannot be empty.');
+        alert('Folder "' + folderName + '" created successfully!');
+        hideModal('create-folder-modal');
+    }
+
+    function createFile() {
+        const fileName = document.getElementById('file-name').value;
+        if (!fileName) return alert('File name cannot be empty.');
+        alert('File "' + fileName + '" created successfully!');
+        hideModal('new-file-modal');
+    }
+</script>
