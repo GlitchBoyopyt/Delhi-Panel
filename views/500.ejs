@@ -1,0 +1,38 @@
+<%- include('components/template') %>
+
+<!-- Load Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.js"></script>
+
+<main id="content">
+    <!-- Page Header -->
+    <div class="bg-transparent">
+        <div class="flex flex-col sm:flex-row sm:items-center px-8 pt-4">
+            <div class="sm:flex-auto">
+                <h1 class="text-lg font-semibold text-white"><%= req.translations.manageInstance %></h1>
+                <p class="mt-1 text-sm text-neutral-400"><%= req.translations.instanceViewDetailText %></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Instance Component -->
+    <%- include('components/instance') %>
+
+    <!-- Error Message Section -->
+    <div class="mt-6 px-8">
+        <h2 class="text-sm font-mono text-neutral-500 tracking-wider">
+            <%= req.translations.fivezerozeroInstanceError %>
+        </h2>
+        <p class="text-lg font-medium text-white mt-2">
+            <%= req.translations.somethingWentWrongThere %>
+        </p>
+        <p class="text-neutral-400 mt-1">
+            <%= req.translations.returnedTextError %> 
+            <code class="bg-neutral-800 text-red-400 px-2 py-1 rounded">
+                <%= error || req.translations.informationAvailableError %>
+            </code>
+        </p>
+    </div>
+</main>
+
+<!-- Footer -->
+<%- include('components/footer') %>
