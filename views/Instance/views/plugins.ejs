@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin Manager</title>
+    <script>
+        function installPlugin(plugin) {
+            fetch('/install', { method: 'POST', body: new URLSearchParams({ plugin }) }).then(() => location.reload());
+        }
+        function uninstallPlugin(plugin) {
+            fetch('/uninstall', { method: 'POST', body: new URLSearchParams({ plugin }) }).then(() => location.reload());
+        }
+    </script>
+</head>
+<body>
+    <h1>Plugin Manager</h1>
+    <ul>
+        <% plugins.forEach(plugin => { %>
+            <li>
+                <%= plugin %> 
+                <button onclick="uninstallPlugin('<%= plugin %>')">Uninstall</button>
+            </li>
+        <% }); %>
+    </ul>
+    <h2>Install New Plugin</h2>
+    <form onsubmit="event.preventDefault(); installPlugin(this.plugin.value)">
+        <input type="text" name="plugin" required>
+        <button type="submit">Install</button>
+    </form>
+</body>
+</html>
