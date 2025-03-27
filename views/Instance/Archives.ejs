@@ -1,0 +1,112 @@
+<%- include('../components/template') %>
+<main id="content" class="min-h-screen text-white">
+   
+   <%- include('../components/instance') %>
+
+   <div class="bg-white/5 rounded-xl p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Backups</h2>
+        <button onclick="createArchive()" class="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-1.5 px-4 rounded-full hover:scale-95 transition">Create Backup</button>
+    </div>
+    <div class="space-y-2">
+        <% if (archives.length === 0) { %>
+            <div class="text-center py-8">
+                <div class="w-16 h-16 mx-auto mb-4 bg-indigo-900/50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-indigo-300">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3.75h3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-white mb-2">No Backups Found</h3>
+                <p class="text-indigo-200/60">Create your first backup to protect your server data</p>
+            </div>
+        <% } else { %>
+        <% archives.forEach(function(archive) { %>
+            <%
+            let fullName = archive.name.replace(req.params.id + '-', '');
+            let [hash, ...rest] = fullName.split('-');
+            let shortHash = hash.slice(0, 7) + '...' + hash.slice(-4);
+            let shortName = [shortHash, ...rest].join('-');
+            %>
+            <div class="flex items-center space-x-4 p-2 border-b border-white/10">
+                <span class="text-gray-200 flex-grow"><%= shortName %></span>
+                <span class="text-gray-400 text-sm"><%= archive.size %></span>
+                <span class="text-gray-400 text-sm"><%= archive.lastUpdated %></span>
+                <button class="bg-neutral-600 hover:bg-neutral-700 text-white font-medium py-1 px-4 rounded-full text-sm mr-2 hover:scale-95 transition" onclick="restoreArchive('<%= archive.name %>')">Restore</button>
+                <button class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-4 rounded-full text-sm hover:scale-95 transition" onclick="showDeleteConfirm('<%= archive.name %>')">Delete</button>
+            </div>
+        <% }); %>
+        <% } %>
+    </div>
+</div>
+
+</main>
+<%- include('../components/footer') %>
+
+<!-- Loading Popup -->
+<div id="loadingPopup" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden transition-opacity duration-300">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full transform scale-95 transition-transform duration-300">
+        <h2 class="text-2xl font-medium mb-4 text-neutral-800">Creating Backup</h2>
+        <div class="w-full bg-neutral-200 rounded-full h-2.5">
+            <div id="loadingBar" class="bg-indigo-500 h-2.5 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+        <p id="loadingMessage" class="text-center text-neutral-600 mt-2">Initializing...</p>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="confirm-delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-xl font-semibold mb-4 text-neutral-800">Confirm Delete</h3>
+        <p class="mb-4 text-neutral-600">Are you sure you want to delete this backup?</p>
+        <div class="flex justify-end">
+            <button id="cancel-delete" class="bg-neutral-600 hover:bg-neutral-700 text-white py-2 px-4 rounded-lg transition mr-2">Cancel</button>
+            <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function createArchive() {
+    document.getElementById('loadingPopup').classList.remove('hidden');
+    let loadingBar = document.getElementById('loadingBar');
+    loadingBar.style.width = '10%';
+
+    const instanceId = '<%= req.params.id %>';
+    try {
+        const response = await fetch(`/instance/${instanceId}/archives/create`, { method: 'POST' });
+
+        if (response.ok) {
+            loadingBar.style.width = '100%';
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            alert('Error creating archive: ' + response.statusText);
+            document.getElementById('loadingPopup').classList.add('hidden');
+        }
+    } catch (error) {
+        alert('An error occurred.');
+        document.getElementById('loadingPopup').classList.add('hidden');
+    }
+}
+
+function showDeleteConfirm(archiveName) {
+    document.getElementById('confirm-delete-modal').classList.remove('hidden');
+    document.getElementById('confirm-delete').onclick = () => deleteArchive(archiveName);
+    document.getElementById('cancel-delete').onclick = () => document.getElementById('confirm-delete-modal').classList.add('hidden');
+}
+
+async function deleteArchive(archiveName) {
+    const instanceId = '<%= req.params.id %>';
+    try {
+        const response = await fetch(`/instance/${instanceId}/archives/delete/${encodeURIComponent(archiveName)}`, { method: 'POST' });
+
+        if (response.ok) {
+            alert('Archive deleted successfully!');
+            window.location.reload();
+        } else {
+            alert('Error deleting archive: ' + response.statusText);
+        }
+    } catch (error) {
+        alert('An error occurred.');
+    }
+}
+</script>
