@@ -1,4 +1,6 @@
 node.status = 'Online';
-node.version = version;
-node.versionFamily = versionFamily;
-node.systemInfo = systemInfo;
+node.version = versionFamily;
+node.release = versionRelease;
+node.online = online;
+node.remote = remote;
+node.docker = docker;
