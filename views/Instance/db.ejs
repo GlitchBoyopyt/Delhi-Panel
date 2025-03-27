@@ -1,0 +1,102 @@
+<%- include('../components/template') %>
+
+<main id="content">
+    <div class="bg-transparent">
+        <div class="sm:flex sm:items-center px-8 pt-4">
+            <div class="sm:flex-auto">
+                <h1 class="text-base font-medium leading-6 text-white">Manage Instance</h1>
+                <p class="mt-1 tracking-tight text-sm text-neutral-500">View, update, and manage an instance on the <%= name %> panel.</p>
+            </div>
+            <div class="mt-4 sm:ml-8 sm:mt-0 sm:flex-none">
+                <button id="createDatabaseButton" class="rounded-xl <%= theme['button-color'] %> px-4 py-2 text-sm font-medium shadow-md transition hover:scale-105 focus:outline-none">Create Database</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating a database -->
+    <div id="createDatabaseModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#1f1e1e] text-white rounded-xl p-6 w-[90%] max-w-md transform scale-95 transition-transform duration-300">
+            <h2 class="text-xl font-semibold mb-2">Create Database</h2>
+            <p class="text-sm text-neutral-400 mb-4">Enter the name of the database you want to create.</p>
+            
+            <form id="createDatabaseForm" action="/instance/<%= req.params.id %>/db/create" method="POST">
+                <input type="text" id="databaseNameInput" name="databaseName" class="w-full px-3 py-2 border border-neutral-500 bg-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter database name" required>
+                
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" id="closeCreateDatabaseModal" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <%- include('../components/instance') %>
+
+    <div class="px-4 sm:px-6 lg:px-8">
+        <table class="min-w-full mt-5 table-auto border border-white/5 shadow rounded-xl">
+            <thead class="text-white bg-[#1f1e1e]">
+                <tr>
+                    <th class="px-6 py-3 text-left">Host</th>
+                    <th class="px-6 py-3 text-left">User</th>
+                    <th class="px-6 py-3 text-left">Password</th>
+                    <th class="px-6 py-3 text-left">Database Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% databases.forEach(function(database) { %>
+                    <tr class="hover:bg-neutral-700/10 cursor-pointer transition">
+                        <td class="px-6 py-4 font-mono text-sm text-white">
+                            <%= database.host %>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-neutral-300">
+                            <%= database.userName %>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-neutral-300">
+                            <span class="blur-sm hover:blur-none cursor-pointer" onclick="navigator.clipboard.writeText('<%- database.password %>');">
+                                <%= database.password %>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-neutral-300">
+                            <%= database.dbName %>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<%- include('../components/footer') %>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.getElementById('createDatabaseModal');
+        const openBtn = document.getElementById('createDatabaseButton');
+        const closeBtn = document.getElementById('closeCreateDatabaseModal');
+
+        function openModal() {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.replace('scale-100', 'scale-95');
+        }
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', event => {
+            if (event.target === modal) closeModal();
+        });
+
+        document.getElementById('createDatabaseForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const dbName = document.getElementById('databaseNameInput').value;
+            if (!dbName.trim()) return;
+
+            this.action = `/instance/<%= req.params.id %>/db/create/${encodeURIComponent(dbName)}`;
+            this.submit();
+        });
+    });
+</script>
