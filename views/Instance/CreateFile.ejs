@@ -1,0 +1,99 @@
+<%- include('../components/template') %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.js"></script>
+
+<main id="content">
+    <div class="bg-transparent">
+        <div class="sm:flex sm:items-center px-8 pt-4">
+           <div class="sm:flex-auto">
+              <h1 class="text-base font-medium leading-6 text-white">Manage Instance</h1>
+              <p class="mt-1 tracking-tight text-sm text-neutral-500">View, update and manage an instance on the <%= name %> panel.</p>
+           </div>
+        </div>
+    </div>
+    <%- include('../components/instance') %>
+
+    <% let query = req.query.path ? '?path=' + req.query.path : ''; %>
+    <div class="flex items-center px-8">
+        <h1 class="text-neutral-200 text-md">
+            <a class="text-neutral-400 hover:text-neutral-300 transition" href="../">/app/data/<%= req.query.path %></a>
+        </h1>
+        <input
+            id="filename"
+            type="text"
+            name="filename"
+            class="ml-4 rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm w-96 px-4 py-2 border-white/5 bg-neutral-600/20 placeholder:text-white/30 border border-black/10"
+            placeholder="file.txt"
+            required
+        />
+    </div>
+
+    <div class="pt-4 overflow-hidden mx-8 mt-4" style="height: 500px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" id="editor"></div>
+
+    <div class="flex mt-8 space-x-4 px-8">
+        <a href="/instance/<%= req.params.id %>/files" class="rounded-xl bg-transparent border border-white/5 hover:bg-neutral-600/10 px-4 py-2 text-sm text-neutral-300 shadow-lg transition">
+            Back
+        </a>
+        <button id="saveButton" onclick="saveFile()" class="rounded-xl <%= theme['button-color'] %> px-4 py-2 text-sm shadow-lg transition" disabled>
+            Create File
+        </button>
+    </div>
+</main>
+
+<script>
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' }});
+require(['vs/editor/editor.main'], function () {
+    var editor = monaco.editor.create(document.getElementById('editor'), {
+        theme: 'vs-dark',
+        language: 'plaintext',
+        automaticLayout: true,
+        value: "// Start typing your code here..."
+    });
+    window.editor = editor;
+});
+
+// Enable Save Button Only If Input Is Valid
+document.getElementById('filename').addEventListener('input', function() {
+    document.getElementById('saveButton').disabled = !this.value.trim();
+});
+
+function saveFile() {
+    var button = document.getElementById('saveButton');
+    var filename = document.getElementById('filename').value.trim();
+    var fileContent = window.editor.getValue();
+    var instanceId = <%- JSON.stringify(req.params.id) %>;
+
+    if (!filename) {
+        alert('Please enter a valid filename.');
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Working...';
+
+    fetch(`/instance/${instanceId}/files/create/${encodeURIComponent(filename)}<%= query %>`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: fileContent })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.message) {
+            button.textContent = 'Done!';
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = 'Create File';
+            }, 1000);
+        } else {
+            throw new Error('Error creating file');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to create the file.');
+        button.disabled = false;
+        button.textContent = 'Create File';
+    });
+}
+</script>
+
+<%- include('../components/footer') %>
