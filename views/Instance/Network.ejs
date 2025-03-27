@@ -1,0 +1,24 @@
+const express = require("express");
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+
+// Dummy Data (Actual data database se aayega)
+const instance = {
+    Node: { address: "192.168.1.1" },
+    ports: [
+        { port: 25565, internal: "Minecraft Server", primary: true },
+        { port: 8080, internal: "Web Panel", primary: false },
+    ],
+};
+
+// Route
+app.get("/", (req, res) => {
+    res.render("network", { instance, ports: instance.ports });
+});
+
+// Server Start
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
