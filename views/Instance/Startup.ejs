@@ -1,0 +1,184 @@
+<%- include('../components/template') %>
+
+<style>
+  /* 🔹 Improved Modal Design */
+  .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+  }
+
+  .modal-content {
+      background: #1f1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.8);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .modal-overlay.active .modal-content {
+      transform: scale(1);
+      opacity: 1;
+  }
+
+  /* 🔹 Improved Buttons */
+  button {
+      transition: all 0.2s ease-in-out;
+  }
+
+  button:hover {
+      transform: scale(0.95);
+      box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+  }
+
+</style>
+
+<main id="content">
+  <%- include('../components/instance') %>
+
+  <!-- 🔹 Rename Server Panel -->
+  <div class="bg-white/5 rounded-xl overflow-hidden">
+      <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-white">Rename Server</h2>
+      </div>
+      <div class="p-6">
+          <div class="flex space-x-4">
+              <input type="text" id="nameServer" class="flex-1 p-3 bg-black/20 text-white border border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500 transition" placeholder="<%= instance.Name %>">
+              <button id="saveName" class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 rounded-xl transition">
+                  Rename
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <br>
+
+  <!-- 🔹 Server Reinstall Panel -->
+  <div class="bg-white/5 rounded-xl overflow-hidden">
+      <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-white">Reinstall Server</h2>
+      </div>
+      <div class="p-6 space-y-4">
+          <p class="text-amber-400 text-sm">⚠️ Warning: This action will completely reset your server.</p>
+          <div class="flex justify-end">
+              <button onclick="reinstall()" class="bg-amber-500 hover:bg-amber-600 text-white font-medium px-6 py-2 rounded-xl transition">
+                  Reinstall
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <br>
+
+  <!-- 🔹 Server Delete Panel -->
+  <div class="bg-white/5 rounded-xl overflow-hidden">
+      <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-white">Delete Server</h2>
+      </div>
+      <div class="p-6 space-y-4">
+          <p class="text-red-400 text-sm">⚠️ Warning: This action will delete your server permanently.</p>
+          <div class="flex justify-end">
+              <button onclick="window.location.href='/delete/<%= req.params.id %>'" class="bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2 rounded-xl transition">
+                  Delete
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <br>
+
+  <!-- 🔹 Server Information -->
+  <div class="bg-white/5 rounded-xl overflow-hidden">
+      <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-white">Server Information</h2>
+      </div>
+      <div class="p-6">
+          <code class="bg-gray-700 p-3 rounded text-white text-sm block">
+              {
+                  "Name": "<%= instance.Name %>",
+                  "Id": "<%= instance.Id %>",
+                  "IP": "<%= instance.Node.address %>:<%= instance.Primary %>",
+                  "Image": "<%= instance.Image %>",
+                  "ContainerId": "<%= instance.ContainerId %>"
+              }
+          </code>
+      </div>
+  </div>
+
+</main>
+
+<!-- 🔹 JavaScript Improvements -->
+<script>
+  function showConfirmationModal(title, message, onConfirm) {
+      const modal = document.getElementById('confirmation-modal');
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('active');
+
+      document.getElementById('modal-confirm').onclick = () => {
+          onConfirm();
+          closeModal('confirmation-modal');
+      };
+
+      document.getElementById('modal-cancel').onclick = () => {
+          closeModal('confirmation-modal');
+      };
+  }
+
+  function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      setTimeout(() => {
+          document.getElementById(modalId).classList.add('hidden');
+      }, 300);
+  }
+
+  async function reinstall() {
+      const instanceId = '<%= req.params.id %>';
+      showConfirmationModal(
+          'Reinstall Server',
+          'Are you sure? This action cannot be undone.',
+          async function() {
+              try {
+                  const response = await fetch(`/instance/reinstall/${instanceId}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' }
+                  });
+
+                  if (response.ok) {
+                      alert('Server reinstalled successfully!');
+                      window.location.href = `/instance/${instanceId}/settings`;
+                  } else {
+                      alert('Error reinstalling server');
+                  }
+              } catch (error) {
+                  alert('An error occurred.');
+              }
+          }
+      );
+  }
+
+  document.getElementById('saveName').addEventListener('click', function() {
+      const name = document.getElementById('nameServer').value;
+      window.location.href = `/instance/<%= req.params.id %>/change/name/${name}`;
+  });
+
+</script>
+
+<%- include('../components/footer') %>
