@@ -1,0 +1,81 @@
+<script>
+    function updateImageName() {
+        const imageSelect = document.getElementById("image");
+        const selectedOption = imageSelect.options[imageSelect.selectedIndex];
+        document.getElementById("imageName").value = selectedOption.text;
+        checkVariables();
+    }
+
+    function getSelectedImageName() {
+        const selectElement = document.getElementById("image");
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        return selectedOption.textContent.trim();
+    }
+
+    function checkVariables() {
+        const select = document.getElementById("image");
+        const selectedOption = select.options[select.selectedIndex];
+        const variables = JSON.parse(selectedOption.getAttribute('data-variables') || '{}');
+        const container = document.getElementById("variablesContainer");
+
+        container.innerHTML = '';
+
+        if (Object.keys(variables).length > 0) {
+            for (const [key, value] of Object.entries(variables)) {
+                const div = document.createElement('div');
+                div.classList.add("flex", "flex-col", "gap-1");
+
+                const label = document.createElement("label");
+                label.innerText = key;
+                label.className = "text-gray-300 text-sm";
+
+                const input = document.createElement('input');
+                input.type = value.type || 'text';
+                input.placeholder = `${key} (default: ${value.default || ''})`;
+                input.className = 'w-full rounded-lg bg-[#1c1e23] text-white border border-gray-600 focus:ring-green-500 px-4 py-2';
+                input.id = key;
+
+                div.appendChild(label);
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+        }
+    }
+
+    function generateRandom5DigitNumber() {
+        return Math.floor(10000 + Math.random() * 90000);
+    }
+
+    function getRandomPorts() {
+        const port = generateRandom5DigitNumber();
+        return `${port}:${port}`;
+    }
+
+    async function submitForm() {
+        const button = document.querySelector("#createServerButton");
+        button.innerHTML = "Creating...";
+        button.disabled = true;
+
+        const name = encodeURIComponent(document.getElementById("name").value);
+        const image = encodeURIComponent(document.getElementById("image").value);
+        const imageName = getSelectedImageName();
+        const memory = encodeURIComponent(document.getElementById("memory").value);
+        const cpu = encodeURIComponent(document.getElementById("cpu").value);
+        const nodeId = encodeURIComponent(document.getElementById("node").value);
+        const userId = "<%= user.userId %>";
+        const ports = getRandomPorts();
+        const primary_port = ports.split(":")[1];
+
+        const variables = Array.from(document.querySelectorAll('#variablesContainer input'))
+            .reduce((acc, input) => ({ ...acc, [input.id]: input.value }), {});
+
+        const variablesJSON = encodeURIComponent(JSON.stringify(variables));
+
+        document.location.href = `/create?name=${name}&image=${image}&imageName=${imageName}&ram=${memory}&cpu=${cpu}&nodeId=${nodeId}&variables=${variablesJSON}&user=${userId}&ports=${ports}&primary=${primary_port}`;
+    }
+</script>
+
+<button id="createServerButton" type="button" onclick="submitForm()" 
+    class="px-6 py-3 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+    Create Server
+</button>
