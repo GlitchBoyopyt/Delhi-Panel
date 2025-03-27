@@ -68,4 +68,4 @@ router.get("/instance/:id/files", async (req, res) => {
     }
 });
 
-module.exports = router;
+module.exports = router
