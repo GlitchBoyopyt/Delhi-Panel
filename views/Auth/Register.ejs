@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delhi Panel - Register</title>
+  <link href="../assets/tailwind.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@500,300,600,400,700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'General Sans'" class="bg-[#1f1e1e] h-full">
+  <div class="min-h-full flex">
+    <div class="flex-1 flex flex-col justify-center py-12 px-6 sm:px-12 lg:flex-none lg:px-20 xl:px-24">
+      <div class="mx-auto w-full max-w-sm lg:w-96">
+        <div class="text-center">
+          <img class="h-12 w-auto rounded-xl mx-auto" src="../assets/logo.png" alt="Delhi Panel Logo">
+          <h2 class="mt-6 text-3xl font-semibold text-white">Register an account</h2>
+          <p class="mt-2 text-sm text-neutral-400">Please enter your details below.</p>
+        </div>
+
+        <div class="mt-8">
+          <form method="POST" action="/auth/register" class="space-y-6">
+            <div>
+              <label for="username" class="block text-sm font-medium text-neutral-400">Username</label>
+              <input type="text" id="username" name="username" placeholder="example" required
+                class="mt-1 block w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition sm:text-sm">
+            </div>
+
+            <div>
+              <label for="email" class="block text-sm font-medium text-neutral-400">Email</label>
+              <input type="email" id="email" name="email" placeholder="example@domain.com" required
+                class="mt-1 block w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition sm:text-sm">
+            </div>
+
+            <div>
+              <label for="password" class="block text-sm font-medium text-neutral-400">Password</label>
+              <input type="password" id="password" name="password" placeholder="********" required
+                class="mt-1 block w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition sm:text-sm">
+            </div>
+
+            <div>
+              <button type="submit"
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-neutral-800 bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                Register
+              </button>
+            </div>
+
+            <% if (req.query.err && req.query.err === "InvalidCredentials") { %>
+              <div class="mt-2 text-sm text-red-500 font-medium">Invalid credentials. Please try again.</div>
+            <% } %>
+          </form>
+        </div>
+
+        <div class="mt-6 text-sm text-neutral-400 text-center">
+          Already have an account? 
+          <a href="/login" class="font-medium text-blue-400 hover:text-blue-500 transition">Sign in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hidden lg:block relative w-0 flex-1">
+      <img class="absolute inset-0 h-full w-full object-cover rounded-l-xl" src="https://i.imgur.com/8G5eRWX.jpeg" alt="">
+    </div>
+  </div>
+</body>
+</html>
