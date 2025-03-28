@@ -1,0 +1,289 @@
+<%- include('../components/admin_template') %>
+<main>
+    <br>
+      <div id="alert-container" class="flex-center mb-4 space-y-2"></div>
+      <div id="nodeForm" class="flex gap-4 mt-6 px-8 w-full">
+        <div class="p-3 bg-transparent shadow-xl rounded-xl overflow-hidden sm:p-6 lg:p-10 card" style="width: 800px;">
+            <form>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.name %>:</label>
+                        <input id="name" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5" placeholder="My instance">
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.user %>:</label>
+                        <select id="user" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5">
+                            <% users.forEach(function(user) { %>
+                                <option value="<%= user.userId %>" class="text-neutral-800 text-sm tracking-tight mb-2"><%= user.username %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="hidden">
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.image %>:</label>
+                        <select id="image" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5">
+                                <option value="ghcr.io/hydrenoffical/hydravm:latest" class="text-neutral-800 text-sm tracking-tight mb-2" data-configfilepath="" data-imagename="HydraVM" data-configfilecontent="">HydraVM</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.node %>:</label>
+                        <select id="node" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5">
+                            <% nodes.forEach(function(node) { %>
+                                <option value="<%= node.id %>" class="text-neutral-800 text-sm tracking-tight mb-2"><%= node.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.memory %> (MiB):</label>
+                        <input id="memory" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5" placeholder="2048">
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.cpuThreads %>:</label>
+                        <input id="cpu" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5" placeholder="1">
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.ports %>:</label>
+                        <input id="ports" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5" placeholder="25565:25565,8080:8080">
+                    </div>
+                    <div>
+                        <label class="text-white text-sm tracking-tight mb-2"><%= req.translations.primaryPort %>:</label>
+                        <input id="primary" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 mb-4 w-full hover:bg-gray-600 bg-gray-700 placeholder:text-white/20 border border-white/5" placeholder="25565">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="createNodeBtn" type="button" class="mt-8 transition px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-blue-500 rounded-lg hover:bg-blue-600 hover:text-white focus:z-10 focus:ring-2 focus:ring-blue-600 focus:text-white">
+                        <%= req.translations.create %>
+                    </button>
+  
+                </div>
+            </form>
+        </div>  
+</main>
+<script>
+    document.getElementById('createButton').addEventListener('click', function() {
+      var table = document.getElementById('nodeTable');
+      var form = document.getElementById('nodeForm');
+      if (table.style.display !== 'none') {
+        table.style.display = 'none';
+        form.style.display = 'flex';
+      } else {
+        table.style.display = 'flex';
+        form.style.display = 'none';
+      }
+    
+      const elem  = document.getElementById('image');
+      elem.selectedIndex = 0;
+      const event = new Event('change', {
+        bubbles: true,
+        cancelable: true
+      });
+      elem.dispatchEvent(event);
+    
+    });
+    
+    </script>
+<script>
+    // Initialize the percentage to 17
+    let percentage = 0;
+    let alertShown = false; // Flag to track if the alert has already been shown
+
+    function updateProgress() {
+        if (percentage <= 100) {
+            // Update the text inside the <h1> with the new percentage
+            document.getElementById('progressText').innerText = `DOWNLOADING Ubuntu 22.04 (${percentage}%)`;
+            percentage++;  // Increment the percentage by 1
+        } else {
+            if (!alertShown) { // Check if the alert hasn't been shown yet
+                hideinstallingPopup();
+                showAlert('error', 'Internal Error', 'Internal Error: Something went wrong! Check the console for more details.');
+                alertShown = true; // Set the flag to true after showing the alert
+            }
+        }
+    }
+
+    // Update the progress every second (1000 milliseconds)
+    setInterval(updateProgress, 100);
+</script>
+<script>
+    document.getElementById('createNodeBtn').addEventListener('click', async function() {
+      const createBtn = this;
+      createBtn.textContent = 'Working on it...';
+      createBtn.disabled = true;
+    
+      const name = document.getElementById('name');
+      const memory = document.getElementById('memory');
+      const cpu = document.getElementById('cpu');
+      const ports = document.getElementById('ports');
+      const imageDropdown = document.getElementById('image');
+      const primaryPort = document.getElementById('primary');
+      const selectedImage = imageDropdown.options[imageDropdown.selectedIndex];
+      const configFilePath = selectedImage.getAttribute('data-configfilepath');
+      let configFileContent = selectedImage.getAttribute('data-configfilecontent');
+    
+    
+      clearValidationErrors();
+    
+      let isValid = true;
+    
+      if (name.value.includes(' ')) {
+          showError(name, 'Name must not contain spaces.');
+          isValid = false;
+      }
+    
+      if (!isPositiveInteger(memory.value)) {
+          showError(memory, 'Memory must be an integer greater than 1.');
+          isValid = false;
+      }
+    
+      if (!isPositiveIntegerCpu(cpu.value)) {
+          showError(cpu, 'CPU must be an integer greater than 0.');
+          isValid = false;
+      }
+    
+      const portPattern = /^(\d+:\d+)(,\d+:\d+)*$/;
+      if (!ports.value.match(portPattern)) {
+          showError(ports, 'Ports must be in the format "port:port,port:port".');
+          isValid = false;
+      }
+    
+      if (!primaryPort.value.match(/^\d+$/)) {
+          showError(primaryPort, 'Primary port must be a valid number.');
+          isValid = false;
+      } else {
+          configFileContent = configFileContent.replace('{{primaryPort}}', primaryPort.value);
+      }
+    
+      if (!isValid) {
+          createBtn.textContent = 'Create';
+          createBtn.disabled = false;
+          return;
+      }
+    
+      const nodeData = {
+          name: name.value,
+          image: imageDropdown.value,
+          imagename: selectedImage.getAttribute('data-imagename'),
+          nodeId: document.getElementById('node').value,
+          user: document.getElementById('user').value,
+          memory: memory.value,
+          cpu: cpu.value,
+          ports: ports.value,
+          primary: primaryPort.value,
+          configFilePath: configFilePath,
+          configFileContent: configFileContent,
+          variables: '[]'
+      };
+    
+      await sendData(nodeData, createBtn);
+    });
+    
+    function clearValidationErrors() {
+      const inputs = document.querySelectorAll('.input-error');
+      const messages = document.querySelectorAll('.error-message');
+      inputs.forEach(input => input.classList.remove('input-error'));
+      messages.forEach(msg => msg.remove());
+    }
+    
+    function serializeParams(params) {
+      return Object.keys(params)
+          .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+          .join('&');
+      }
+      
+    function showError(element, message) {
+      element.classList.add('input-error');
+      const errorDiv = document.createElement('div');
+      errorDiv.textContent = message;
+      errorDiv.className = 'error-message';
+      element.parentNode.insertBefore(errorDiv, element.nextSibling);
+    }
+    
+    function isPositiveInteger(value) {
+      const num = parseInt(value, 10);
+      return Number.isInteger(num) && num > 1;
+    }
+    
+    function isPositiveIntegerCpu(value) {
+      const num = parseInt(value, 10);
+      return Number.isInteger(num) && num > 0;
+    }
+    
+    function sendData(nodeData, createBtn) {
+      const baseUrl = '/instances/deploy';
+      const queryParams = serializeParams(nodeData);
+      const fullUrl = `${baseUrl}?${queryParams}`;
+    
+      fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+      })
+      .then(response => {
+          if (response.ok) {
+              return response.json();
+          } else {
+              throw new Error('Failed to create instance');
+          }
+      })
+      .then(data => {
+    window.location.href = '/admin/instances?err=CREATED'
+          console.log('Instance created:', data);
+          createBtn.textContent = 'Create';
+          createBtn.disabled = false;
+      })
+      .catch(error => {
+          console.error('Error creating instance:', error);
+          alert('Error! Instance creation failed. Check the console for more details.');
+          createBtn.textContent = 'Create';
+          createBtn.disabled = false;
+      });
+    }
+    
+    function handleResponse(response) {
+      if (response.ok) {
+          return response.json();
+      }
+      throw new Error('Failed to create instance');
+    }
+    
+    function handleError(error) {
+      console.error('Error creating instance:', error);
+      alert('Error! Check the console for more details.');
+      createBtn.textContent = 'Create';
+      createBtn.disabled = false;
+    }
+    </script>
+<script>
+     function showAlert(type, title, message) {
+    const alertContainer = document.getElementById('alert-container');
+    const alertElement = document.createElement('div');
+    alertElement.className = `p-4 rounded-2xl ${type === 'error' ? 'bg-red-600 text-white' : 'bg-amber-600 text-white'} fade-in`;
+    alertElement.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <h3 class="text-lg font-medium">${title}</h3>
+        </div>
+        <p class="mt-2 text-sm">${message}</p>
+    `;
+    alertContainer.appendChild(alertElement);
+    setTimeout(() => {
+        alertElement.classList.add('fade-out');
+        setTimeout(() => alertContainer.removeChild(alertElement), 500);
+    }, 5000);
+} 
+    function showinstallingPopup() {
+        const popup = document.getElementById('installing-popup');
+        popup.classList.remove('hidden');
+        popup.classList.add('flex');
+    }
+
+    function hideinstallingPopup() {
+        const popup = document.getElementById('installing-popup');
+        popup.classList.add('hidden');
+        popup.classList.remove('flex');
+    }
+</script>
+</body>
+</html>
