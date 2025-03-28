@@ -1,0 +1,136 @@
+<%- include('../components/admin_template') %>
+
+<main id="content">
+  <div class="bg-transparent px-8 pt-4">
+    <div class="sm:flex sm:items-center">
+      <h1 class="text-lg font-extrabold leading-6 text-white"><%= req.translations.users %></h1>
+    </div>
+
+    <div id="nodeTable" class="w-full mt-4">
+      <div class="flex justify-end mb-4">
+        <button id="createButton" type="button"
+          class="transition px-4 py-2 text-sm font-medium text-white rounded-2xl bg-blue-500 hover:bg-blue-600">
+          <%= req.translations.createUserButton %>
+        </button>
+      </div>
+
+      <table class="w-full whitespace-nowrap text-left border border-gray-700 rounded-lg overflow-hidden">
+        <thead class="bg-gray-900">
+          <tr>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.name %></th>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.email %></th>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.information %></th>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.role %></th>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.edit %></th>
+            <th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase"><%= req.translations.remove %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700">
+          <% users.forEach(function(user) { %>
+            <tr class="bg-white/5 hover:bg-white/10 transition-colors">
+              <td class="px-6 py-4 text-sm font-medium text-white"><%= user.username %></td>
+              <td class="px-6 py-4 text-sm text-gray-400"><%= user.email %></td>
+              <td class="px-6 py-4 text-sm text-gray-400"><%= user.userId %></td>
+              <td class="px-6 py-4 text-sm <%= user.admin ? 'text-green-400' : 'text-yellow-400' %>">
+                <%= user.admin ? req.translations.admin : req.translations.regularUserRole %>
+              </td>
+              <td><a href="/admin/users/edit/<%= user.userId %>"
+                  class="px-6 py-4 text-sm text-blue-400 hover:underline"><%= req.translations.edit %></a></td>
+              <td>
+                <button class="px-6 py-4 text-sm text-red-400 cursor-pointer hover:underline removeButton"
+                  data-user-id="<%= user.userId %>">
+                  <%= req.translations.remove %>
+                </button>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Create User Form -->
+    <div id="nodeForm" class="mt-6 hidden">
+      <form>
+        <label class="text-neutral-400 text-sm tracking-tight mb-2"><%= req.translations.username %>:</label>
+        <input id="userName" type="text" name="username" class="form-input" placeholder="<%= req.translations.usernamePlaceholder %>">
+
+        <label class="text-neutral-400 text-sm tracking-tight mb-2"><%= req.translations.email %>:</label>
+        <input id="email" type="email" name="email" class="form-input" placeholder="<%= req.translations.emailPlaceholder %>">
+
+        <label class="text-neutral-400 text-sm tracking-tight mb-2"><%= req.translations.passwordLabel %>:</label>
+        <input id="userPass" type="password" name="password" class="form-input" placeholder="******">
+
+        <label class="text-neutral-400 text-sm tracking-tight mb-2"><%= req.translations.admin %>:</label>
+        <select id="userAdmin" name="admin" class="form-input">
+          <option value="true"><%= req.translations.true %></option>
+          <option value="false"><%= req.translations.false %></option>
+        </select>
+
+        <label class="text-neutral-400 text-sm tracking-tight mb-2"><%= req.translations.verifiedStatus %>:</label>
+        <select id="userVerified" name="verified" class="form-input">
+          <option value="true"><%= req.translations.true %></option>
+          <option value="false"><%= req.translations.false %></option>
+        </select>
+
+        <button id="createNodeBtn" type="button"
+          class="block w-full mt-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-100 px-3 py-2 text-center text-sm font-medium shadow-lg transition">
+          <%= req.translations.create %>
+        </button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Toggle Form Visibility
+  document.getElementById("createButton").addEventListener("click", function () {
+    var table = document.getElementById("nodeTable");
+    var form = document.getElementById("nodeForm");
+    table.classList.toggle("hidden");
+    form.classList.toggle("hidden");
+  });
+
+  // Create User Function
+  document.getElementById("createNodeBtn").addEventListener("click", function () {
+    const username = document.getElementById("userName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("userPass").value.trim();
+    const admin = document.getElementById("userAdmin").value === "true";
+    const verified = document.getElementById("userVerified").value === "true";
+
+    if (!username || !email || !password) {
+      alert('<%= req.translations.allFieldsRequired %>');
+      return;
+    }
+
+    fetch("/users/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password, admin, verified })
+    })
+    .then(response => response.ok ? response.json() : Promise.reject("Failed to create user"))
+    .then(() => {
+      alert('<%= req.translations.userCreatedSuccess %>');
+      window.location.reload();
+    })
+    .catch(error => alert('<%= req.translations.userCreateError %>: ' + error));
+  });
+
+  // Remove User Function
+  document.querySelectorAll(".removeButton").forEach(button => {
+    button.addEventListener("click", function () {
+      const userId = this.dataset.userId;
+      if (!confirm('<%= req.translations.userDeletingConfirmation %>')) return;
+
+      fetch('/user/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+      .then(response => response.ok ? window.location.reload() : Promise.reject("Failed to delete user"))
+      .catch(error => alert('<%= req.translations.userDeletingError %>: ' + error));
+    });
+  });
+</script>
+
+<%- include('../components/footer') %>
