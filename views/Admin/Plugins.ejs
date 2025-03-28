@@ -1,0 +1,65 @@
+<%- include('../components/admin_addons_template') %>
+<main id="content" class="px-8 pt-4">
+  <div class="bg-transparent">
+    <div class="sm:flex sm:items-center justify-between">
+      <div>
+        <h1 class="text-xl font-semibold text-white">Plugins Overview</h1>
+        <p class="mt-1 text-sm text-neutral-400">Manage all installed plugins on the panel.</p>
+      </div>
+      <button id="reload" class="rounded-lg bg-green-500 px-4 py-2 text-white font-medium shadow-md hover:bg-green-600 transition focus:outline-none" 
+              onclick="fetch('/admin/plugins/reload', {method: 'POST'}).then(() => location.reload())">
+        Reload Plugins
+      </button>
+    </div>
+
+    <!-- Plugin Stats -->
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-[#171717] p-5 rounded-lg shadow-md flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-neutral-400">Total Plugins</p>
+          <h2 class="text-2xl font-semibold text-white"><%= plugins.length %></h2>
+        </div>
+        <div class="p-3 bg-white/10 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-[#171717] p-5 rounded-lg shadow-md flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-neutral-400">Enabled Plugins</p>
+          <h2 class="text-2xl font-semibold text-white"><%= enabledPlugins.length %></h2>
+        </div>
+        <div class="p-3 bg-white/10 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Installed Plugins List -->
+    <div class="mt-8">
+      <h3 class="text-lg font-semibold text-white">Installed Plugins</h3>
+      <div class="mt-4 space-y-4">
+        <% plugins.forEach(function(plugin) { %>
+          <div class="flex items-center justify-between bg-[#1f1e1e] p-4 rounded-lg shadow-md hover:bg-[#232323] transition">
+            <div class="flex items-center space-x-3 cursor-pointer hover:text-blue-400 transition" onclick="location.href='/admin/plugins/<%= plugin.directoryname %>/edit'">
+              <span class="text-white font-medium"><%= plugin.name %></span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400 hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3h5m-5 0l5 5m-5-5v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" />
+              </svg>
+            </div>
+            <button onclick="fetch('/admin/plugins/<%= plugin.name %>/toggle', {method: 'POST'}).then(res => { if (res.ok) location.reload() })" 
+                    class="px-3 py-1.5 text-sm font-medium rounded-lg shadow-md transition
+                      <%= enabledPlugins.some(pluginObj => pluginObj.name === plugin.name) ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-green-600 hover:bg-green-500 text-white' %>">
+              <%= enabledPlugins.some(pluginObj => pluginObj.name === plugin.name) ? 'Disable' : 'Enable' %>
+            </button>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+</main>
+<%- include('../components/footer') %>
