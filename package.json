@@ -18,3 +18,8 @@
     "nodemon": "^2.0.22"
   }
 }
+"scripts": {
+   "start": "node index.js",
+   "dev": "nodemon index.js",
+   "createUser": "node scripts/createUser.js"
+}
